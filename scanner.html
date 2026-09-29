@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#E30613">
   <title>Scanner - WMS Makro 156</title>
 
-  <!-- ZXing เป็น fallback (ถ้าไม่มี BarcodeDetector) -->
+  <!-- ZXing (fallback สำหรับ Android) -->
   <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
 
   <style>
@@ -87,7 +87,6 @@
     .scanner-frame::before{top:-4px;left:-4px;border-right:none;border-bottom:none}
     .scanner-frame::after{bottom:-4px;right:-4px;border-left:none;border-top:none}
 
-    /* Laser */
     .scanner-laser{
       position:absolute;
       left:9%;right:9%;
@@ -103,7 +102,6 @@
       50%{top:calc(91% - 3px)}
     }
 
-    /* Flash effect when success */
     .flash-success{
       position:absolute;inset:0;
       background:rgba(0,230,118,.45);
@@ -116,7 +114,6 @@
       100%{opacity:0}
     }
 
-    /* Loading */
     .scanner-loading{
       position:absolute;inset:0;
       display:grid;place-items:center;
@@ -135,7 +132,6 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .loading-text{font-size:13px;font-weight:700;color:rgba(255,255,255,.85);margin-top:6px}
 
-    /* Status */
     .scanner-status{
       padding:10px 16px;
       background:rgba(0,0,0,.95);
@@ -154,7 +150,6 @@
     }
     @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
 
-    /* Controls */
     .scanner-controls{
       display:flex;gap:8px;
       padding:10px 14px 14px;
@@ -177,6 +172,208 @@
       border-color:transparent;
       box-shadow:0 4px 14px rgba(227,6,19,.35);
     }
+
+    /* ===== iOS Special Screen ===== */
+    .ios-screen{
+      position:absolute;inset:0;
+      display:flex;flex-direction:column;
+      padding:24px 20px;
+      background:linear-gradient(180deg,#0a0a0a 0%,#1a1a1a 100%);
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .ios-hero{
+      text-align:center;
+      margin-bottom:20px;
+      flex-shrink:0;
+    }
+    .ios-hero-icon{
+      font-size:64px;
+      margin-bottom:12px;
+      display:block;
+      animation:heroFloat 3s ease-in-out infinite;
+    }
+    @keyframes heroFloat{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-8px)}
+    }
+    .ios-hero h2{
+      font-size:19px;
+      font-weight:900;
+      margin-bottom:6px;
+      background:linear-gradient(135deg,#00E676,#4ADE80);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .ios-hero p{
+      font-size:12.5px;
+      color:rgba(255,255,255,.65);
+      line-height:1.5;
+    }
+
+    .ios-steps{
+      display:flex;flex-direction:column;gap:10px;
+      margin-bottom:18px;
+      flex-shrink:0;
+    }
+    .ios-step{
+      display:flex;gap:12px;
+      padding:14px 16px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:14px;
+      align-items:flex-start;
+      transition:.2s;
+    }
+    .ios-step:active{
+      background:rgba(255,255,255,.1);
+      transform:scale(.98);
+    }
+    .ios-step-num{
+      flex-shrink:0;
+      width:32px;height:32px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#E30613,#B00410);
+      display:grid;place-items:center;
+      font-weight:900;font-size:14px;
+      box-shadow:0 4px 12px rgba(227,6,19,.35);
+    }
+    .ios-step-body{flex:1;min-width:0}
+    .ios-step-title{
+      font-size:14px;
+      font-weight:800;
+      margin-bottom:3px;
+      color:#fff;
+    }
+    .ios-step-desc{
+      font-size:12px;
+      color:rgba(255,255,255,.6);
+      line-height:1.5;
+    }
+    .ios-step-desc b{
+      color:#00E676;
+      font-weight:800;
+    }
+
+    .ios-paste-section{
+      background:rgba(0,230,118,.08);
+      border:1.5px solid rgba(0,230,118,.3);
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:16px;
+      flex-shrink:0;
+    }
+    .ios-paste-label{
+      font-size:12px;
+      font-weight:800;
+      color:#00E676;
+      margin-bottom:8px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    .ios-paste-input-wrap{
+      position:relative;
+      display:flex;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .ios-paste-input{
+      flex:1;
+      padding:15px 16px;
+      background:#fff;
+      color:#000;
+      border:2px solid #00E676;
+      border-radius:12px;
+      font-size:16px;
+      font-family:'Courier New',monospace;
+      font-weight:800;
+      outline:none;
+      min-width:0;
+      -webkit-user-select:text;
+      user-select:text;
+    }
+    .ios-paste-input:focus{
+      border-color:#00E676;
+      box-shadow:0 0 0 4px rgba(0,230,118,.25);
+    }
+    .ios-paste-btn{
+      flex-shrink:0;
+      width:54px;
+      background:linear-gradient(135deg,#00E676,#00C853);
+      border:none;
+      border-radius:12px;
+      display:grid;place-items:center;
+      font-size:22px;
+      cursor:pointer;
+      box-shadow:0 4px 14px rgba(0,230,118,.4);
+      transition:.15s;
+    }
+    .ios-paste-btn:active{transform:scale(.94)}
+    .ios-paste-hint{
+      font-size:11px;
+      color:rgba(255,255,255,.5);
+      text-align:center;
+      line-height:1.5;
+    }
+
+    .ios-submit{
+      width:100%;
+      padding:17px;
+      background:linear-gradient(135deg,#00A651,#008a43);
+      color:#fff;
+      border:none;
+      border-radius:16px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      box-shadow:0 8px 24px rgba(0,166,81,.4);
+      transition:.15s;
+      margin-bottom:12px;
+      flex-shrink:0;
+    }
+    .ios-submit:active{transform:scale(.97)}
+    .ios-submit:disabled{
+      opacity:.4;cursor:not-allowed;transform:none;
+    }
+
+    .ios-divider{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin:16px 0;
+      color:rgba(255,255,255,.4);
+      font-size:11px;
+      font-weight:700;
+      flex-shrink:0;
+    }
+    .ios-divider::before,
+    .ios-divider::after{
+      content:'';
+      flex:1;
+      height:1px;
+      background:rgba(255,255,255,.15);
+    }
+
+    .ios-tip{
+      padding:12px 14px;
+      background:rgba(255,184,0,.1);
+      border-left:3px solid #FFB800;
+      border-radius:8px;
+      font-size:11.5px;
+      color:rgba(255,255,255,.75);
+      line-height:1.6;
+      margin-bottom:12px;
+      flex-shrink:0;
+    }
+    .ios-tip b{color:#FFB800;font-weight:800}
 
     /* Result Popup */
     .result-popup{
@@ -224,28 +421,6 @@
       color:#fff;box-shadow:0 4px 14px rgba(0,166,81,.35);
     }
 
-    /* Manual Input */
-    .manual-popup{
-      position:fixed;inset:0;
-      background:rgba(0,0,0,.88);
-      display:grid;place-items:center;
-      padding:20px;z-index:110;
-    }
-    .manual-card{
-      background:#fff;color:#000;
-      border-radius:20px;width:100%;max-width:420px;
-      padding:24px 22px;
-    }
-    .manual-card h3{font-size:16px;font-weight:900;margin-bottom:14px;color:#E30613}
-    .manual-input{
-      width:100%;padding:14px 16px;
-      border:2px solid #E8E8E8;border-radius:12px;
-      font-size:16px;font-family:monospace;font-weight:700;
-      outline:none;margin-bottom:12px;
-    }
-    .manual-input:focus{border-color:#E30613}
-
-    /* Toast */
     .toast-stack{
       position:fixed;top:70px;right:14px;
       display:flex;flex-direction:column;gap:8px;
@@ -268,16 +443,6 @@
     @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
 
     .hidden{display:none!important}
-
-    /* Landscape */
-    @media (orientation:landscape) and (max-height:500px){
-      .scanner-header{padding:8px 14px}
-      .scanner-header h1{font-size:13px}
-      .scanner-controls{padding:6px 12px 8px}
-      .ctrl-btn{min-height:38px;font-size:11.5px;padding:6px}
-      .scanner-status{padding:6px 14px;font-size:11.5px;min-height:32px}
-      .scanner-frame{max-width:240px}
-    }
   </style>
 </head>
 <body>
@@ -289,7 +454,88 @@
     <button class="close-btn" onclick="closeAndReturn()" title="ปิด">✕</button>
   </div>
 
-  <div class="scanner-viewport">
+  <!-- iOS Special Screen (แสดงเฉพาะ iOS) -->
+  <div class="scanner-viewport hidden" id="iosScreen">
+    <div class="ios-screen">
+
+      <div class="ios-hero">
+        <span class="ios-hero-icon">📱</span>
+        <h2>สแกนด้วย iPhone Camera</h2>
+        <p>iPhone มีสแกนเนอร์ในตัว เร็วกว่าเว็บ 100%</p>
+      </div>
+
+      <div class="ios-steps">
+        <div class="ios-step">
+          <div class="ios-step-num">1</div>
+          <div class="ios-step-body">
+            <div class="ios-step-title">เปิดแอป Camera</div>
+            <div class="ios-step-desc">กดปุ่ม Home → เปิดแอป <b>Camera</b> (กล้อง)</div>
+          </div>
+        </div>
+
+        <div class="ios-step">
+          <div class="ios-step-num">2</div>
+          <div class="ios-step-body">
+            <div class="ios-step-title">หันกล้องไปที่บาร์โค้ด</div>
+            <div class="ios-step-desc">iPhone จะ<b>สแกนอัตโนมัติ</b> — ไม่ต้องกดอะไร</div>
+          </div>
+        </div>
+
+        <div class="ios-step">
+          <div class="ios-step-num">3</div>
+          <div class="ios-step-body">
+            <div class="ios-step-title">กดที่ Notification ที่ขึ้น</div>
+            <div class="ios-step-desc">จะเห็นตัวเลขบาร์โค้ด — <b>กดค้าง</b> แล้วเลือก <b>คัดลอก (Copy)</b></div>
+          </div>
+        </div>
+
+        <div class="ios-step">
+          <div class="ios-step-num">4</div>
+          <div class="ios-step-body">
+            <div class="ios-step-title">กลับมาที่หน้านี้</div>
+            <div class="ios-step-desc">สลับกลับมา Safari แล้ว<b>วางในช่องด้านล่าง</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ios-paste-section">
+        <div class="ios-paste-label">📋 วางบาร์โค้ดที่คัดลอก</div>
+        <div class="ios-paste-input-wrap">
+          <input type="text" 
+                 class="ios-paste-input" 
+                 id="iosPasteInput"
+                 placeholder="วางที่นี่..."
+                 autocomplete="off" 
+                 autocorrect="off" 
+                 autocapitalize="off" 
+                 spellcheck="false"
+                 inputmode="text">
+          <button class="ios-paste-btn" onclick="iosPasteFromClipboard()" title="วาง">📋</button>
+        </div>
+        <div class="ios-paste-hint">
+          💡 กดปุ่ม 📋 เพื่อวางอัตโนมัติ หรือกดค้างในช่องแล้วเลือก Paste
+        </div>
+      </div>
+
+      <button class="ios-submit" id="iosSubmitBtn" onclick="iosSubmitValue()" disabled>
+        <span>✅</span> ยืนยันและกลับ WMS
+      </button>
+
+      <div class="ios-divider">หรือ</div>
+
+      <button class="ctrl-btn" onclick="iosTryWebScanner()" style="width:100%;padding:16px;margin-bottom:10px;min-height:52px;font-size:13.5px;background:linear-gradient(135deg,#0EA5E9,#0284C7);border-color:transparent;box-shadow:0 6px 18px rgba(14,165,233,.35)">
+        🌐 ลองเปิดกล้องในเว็บ (อาจช้า)
+      </button>
+
+      <div class="ios-tip">
+        <b>💡 เคล็ดลับ:</b> iPhone Camera อ่านบาร์โค้ดได้เร็วกว่าเว็บ 5-10 เท่า เพราะใช้ Neural Engine ในตัว
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Web Scanner (แสดงเฉพาะ Android/Desktop) -->
+  <div class="scanner-viewport" id="webScreen">
     <video id="video" autoplay playsinline muted></video>
 
     <div class="scanner-overlay">
@@ -305,12 +551,12 @@
     </div>
   </div>
 
-  <div class="scanner-status">
+  <div class="scanner-status" id="statusBar">
     <span class="dot"></span>
     <span id="statusText">กำลังเริ่ม...</span>
   </div>
 
-  <div class="scanner-controls">
+  <div class="scanner-controls" id="controlBar">
     <button class="ctrl-btn" id="torchBtn" onclick="toggleTorch()" style="display:none">🔆 เปิดไฟ</button>
     <button class="ctrl-btn" id="switchBtn" onclick="switchCamera()" style="display:none">🔄 สลับ</button>
     <button class="ctrl-btn" onclick="openManualInput()">⌨️ กรอกเอง</button>
@@ -318,7 +564,7 @@
   </div>
 </div>
 
-<!-- Result -->
+<!-- Result Popup -->
 <div class="result-popup hidden" id="resultPopup">
   <div class="result-card">
     <span class="result-icon" id="resultIcon">✅</span>
@@ -333,12 +579,19 @@
 </div>
 
 <!-- Manual -->
-<div class="manual-popup hidden" id="manualPopup">
-  <div class="manual-card">
-    <h3>⌨️ กรอกเอง</h3>
-    <input type="text" class="manual-input" id="manualInput"
+<div class="result-popup hidden" id="manualPopup">
+  <div class="result-card">
+    <span class="result-icon">⌨️</span>
+    <div class="result-title" style="color:#E30613">กรอกเอง</div>
+    <input type="text" 
+           class="ios-paste-input" 
+           id="manualInput"
            placeholder="พิมพ์บาร์โค้ด / รหัส..."
-           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+           style="margin-bottom:14px;text-align:center"
+           autocomplete="off" 
+           autocorrect="off" 
+           autocapitalize="off" 
+           spellcheck="false">
     <div class="result-actions">
       <button class="result-btn rescan" onclick="closeManual()">ยกเลิก</button>
       <button class="result-btn confirm" onclick="submitManual()">ตกลง</button>
@@ -352,7 +605,7 @@
 'use strict';
 
 /* ============================================================
-   📋 CONFIG
+   📋 CONFIG & DETECTION
 ============================================================ */
 var config = {
   returnUrl: '',
@@ -360,41 +613,37 @@ var config = {
   label: 'สแกนบาร์โค้ด / QR'
 };
 
+var device = {
+  isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+  isAndroid: /Android/i.test(navigator.userAgent),
+  isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+  isChrome: /Chrome/i.test(navigator.userAgent) && !/Edge/i.test(navigator.userAgent)
+};
+
 /* ============================================================
    📦 STATE
 ============================================================ */
 var state = {
-  // Video
   stream: null,
   videoTrack: null,
   video: null,
-
-  // Engines
-  detector: null,           // BarcodeDetector
-  zxingReader: null,        // ZXing fallback
-  activeEngine: null,       // 'native' | 'zxing'
-
-  // Scanning control
+  detector: null,
+  zxingReader: null,
+  activeEngine: null,
   isScanning: false,
   rafId: null,
   lastDecodeTime: 0,
-  decodeInterval: 60,       // ms between decodes (60ms ≈ 16fps decode)
-
-  // Result
+  decodeInterval: 80,
   lastResult: '',
   lastResultTime: 0,
   pendingResult: '',
   debounceMs: 1200,
-
-  // Camera
   devices: [],
   currentDeviceIndex: 0,
-  currentFacing: 'environment',
   torchOn: false,
   torchAvailable: false,
-
-  // UI
-  flashTimer: null
+  flashTimer: null,
+  iosMode: false
 };
 
 /* ============================================================
@@ -408,147 +657,199 @@ window.addEventListener('load', function() {
 
   document.getElementById('headerTitle').textContent = config.label;
 
-  updateStatusForMode();
-
   // ตรวจ In-App Browser
   if (detectInAppBrowser()) return;
 
-  // ตรวจ HTTPS
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    showError('⚠️ ต้องใช้ HTTPS', 'เว็บนี้ต้องเปิดผ่าน https://');
+  // ⭐ ถ้าเป็น iOS → ใช้ iOS Mode (แอป Camera + วาง)
+  if (device.isIOS) {
+    initIOSMode();
     return;
   }
 
-  // ตรวจ API
+  // Android/Desktop → Web Scanner
+  initWebScanner();
+});
+
+/* ============================================================
+   🍎 iOS Mode — ใช้แอป Camera + วาง
+============================================================ */
+function initIOSMode() {
+  state.iosMode = true;
+
+  // แสดง iOS screen, ซ่อน web screen
+  document.getElementById('iosScreen').classList.remove('hidden');
+  document.getElementById('webScreen').classList.add('hidden');
+
+  // แก้ status bar
+  var dot = document.querySelector('#statusBar .dot');
+  if (dot) {
+    dot.style.background = '#0EA5E9';
+    dot.style.boxShadow = '0 0 8px #0EA5E9';
+  }
+  document.getElementById('statusText').textContent = '📱 สแกนด้วยแอป Camera แล้ววาง';
+
+  // ซ่อน controls ที่ไม่ใช้
+  document.getElementById('torchBtn').style.display = 'none';
+  document.getElementById('switchBtn').style.display = 'none';
+
+  // Setup input listener
+  var input = document.getElementById('iosPasteInput');
+  if (input) {
+    input.addEventListener('input', function() {
+      var btn = document.getElementById('iosSubmitBtn');
+      btn.disabled = !this.value.trim();
+    });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        iosSubmitValue();
+      }
+    });
+    // Auto focus
+    setTimeout(function() {
+      input.focus();
+    }, 500);
+  }
+
+  // ลอง auto-paste จาก clipboard (ถ้า Safari อนุญาต)
+  setTimeout(function() {
+    iosAutoPasteIfPossible();
+  }, 800);
+}
+
+/* ============================================================
+   📋 iOS — Paste from Clipboard
+============================================================ */
+function iosPasteFromClipboard() {
+  var input = document.getElementById('iosPasteInput');
+  if (!input) return;
+
+  // ลอง Clipboard API (iOS Safari 13.4+)
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText()
+      .then(function(text) {
+        if (!text || !text.trim()) {
+          toast('คลิปบอร์ดว่าง', 'warn');
+          input.focus();
+          return;
+        }
+        input.value = text.trim();
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        haptic(15);
+        beepSuccess();
+        toast('✅ วางแล้ว', 'success', 1500);
+      })
+      .catch(function(err) {
+        console.warn('Clipboard error:', err);
+        // ❌ Safari บางเวอร์ชันไม่อนุญาต → ให้ผู้ใช้กดวางเอง
+        toast('กรุณากดค้างในช่องแล้วเลือก "วาง"', 'info', 3000);
+        input.focus();
+      });
+  } else {
+    toast('กรุณากดค้างในช่องแล้วเลือก "วาง"', 'info', 3000);
+    input.focus();
+  }
+}
+
+function iosAutoPasteIfPossible() {
+  // ลองอ่าน clipboard อัตโนมัติ (เฉพาะครั้งแรก)
+  if (!navigator.clipboard || !navigator.clipboard.readText) return;
+
+  navigator.clipboard.readText()
+    .then(function(text) {
+      if (text && text.trim() && text.length < 100) {
+        // มีค่าอยู่ใน clipboard → แสดงปุ่ม hint
+        var input = document.getElementById('iosPasteInput');
+        if (input && !input.value) {
+          // แสดง toast บอกว่ามีข้อมูลรอ
+          toast('📋 มีข้อมูลในคลิปบอร์ด — กดปุ่ม 📋 เพื่อวาง', 'info', 3000);
+        }
+      }
+    })
+    .catch(function() {
+      // ไม่ต้องทำอะไร
+    });
+}
+
+/* ============================================================
+   ✅ iOS — Submit Value
+============================================================ */
+function iosSubmitValue() {
+  var input = document.getElementById('iosPasteInput');
+  if (!input) return;
+
+  var val = input.value.trim();
+  if (!val) {
+    toast('กรุณาวางค่าที่สแกนได้', 'warn');
+    input.focus();
+    return;
+  }
+
+  beepSuccess();
+  haptic([50, 40, 50]);
+
+  state.pendingResult = val;
+  returnToApp(val);
+}
+
+/* ============================================================
+   🌐 iOS — ลองใช้ Web Scanner (ถ้าอยากลอง)
+============================================================ */
+function iosTryWebScanner() {
+  state.iosMode = false;
+  document.getElementById('iosScreen').classList.add('hidden');
+  document.getElementById('webScreen').classList.remove('hidden');
+
+  var dot = document.querySelector('#statusBar .dot');
+  if (dot) {
+    dot.style.background = '#00E676';
+    dot.style.boxShadow = '0 0 10px #00E676';
+  }
+  document.getElementById('statusText').textContent = 'กำลังเปิดกล้อง...';
+
+  // เริ่ม web scanner
+  initWebScanner();
+}
+
+/* ============================================================
+   🌐 Web Scanner (Android/Desktop/iOS ถ้าเลือก)
+============================================================ */
+function initWebScanner() {
+  state.video = document.getElementById('video');
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showError('เบราว์เซอร์ไม่รองรับกล้อง', 'ใช้ Chrome (Android) หรือ Safari (iOS)');
     return;
   }
 
-  // เริ่ม
-  initCamera();
-});
-
-function updateStatusForMode() {
-  var el = document.getElementById('statusText');
-  if (config.scanMode === 'item') el.textContent = '📦 เล็งบาร์โค้ดสินค้า';
-  else if (config.scanMode === 'pallet') el.textContent = '🚚 เล็ง QR Code พาเลท';
-  else el.textContent = 'เล็งกล้องไปที่บาร์โค้ดหรือ QR Code';
-}
-
-function detectInAppBrowser() {
-  var ua = navigator.userAgent || '';
-  var isLine = /Line\//i.test(ua);
-  var isFacebook = /FBAN|FBAV|FB_IAB|FB4A|FBIOS/i.test(ua);
-  var isInstagram = /Instagram/i.test(ua);
-  var isTikTok = /TikTok|BytedanceWebview/i.test(ua);
-  var isTwitter = /Twitter/i.test(ua);
-
-  if (isLine || isFacebook || isInstagram || isTikTok || isTwitter) {
-    var app = isLine ? 'LINE' : isFacebook ? 'Facebook' : isInstagram ? 'Instagram' : isTikTok ? 'TikTok' : 'Twitter';
-    showError(
-      '⚠️ ต้องเปิดใน Chrome / Safari',
-      'คุณกำลังเปิดจาก ' + app + '<br><br>' +
-      '<b style="color:#FFB800">วิธีแก้:</b><br>' +
-      'กด ⋮ (มุมขวาบน) → เปิดในเบราว์เซอร์'
-    );
-    return true;
-  }
-  return false;
-}
-
-/* ============================================================
-   📷 เปิดกล้อง — บังคับกล้องหลัง
-============================================================ */
-function initCamera() {
-  state.video = document.getElementById('video');
-
-  // ✅ Step 1: ขอสิทธิ์ + เปิดกล้องหลังทันที (ใช้ facingMode exact)
-  requestCamera({ facingMode: { exact: 'environment' } }, true)
+  requestCamera()
     .catch(function(err) {
-      console.warn('exact environment fail:', err.name);
-      // Fallback 1: ideal environment
-      return requestCamera({ facingMode: { ideal: 'environment' } }, false);
-    })
-    .catch(function(err) {
-      console.warn('ideal environment fail:', err.name);
-      // Fallback 2: ใช้ deviceId ที่หาได้
-      return tryDeviceIdCamera();
-    })
-    .catch(function(err) {
-      console.error('All camera attempts failed:', err);
+      console.warn('Camera error:', err);
       handleCameraError(err);
     });
 }
 
-function requestCamera(constraints, isExact) {
-  var videoConstraints = {
-    width: { ideal: 1280, min: 640 },
-    height: { ideal: 720, min: 480 },
-    frameRate: { ideal: 30, min: 15 }
-  };
-
-  // Merge constraints
-  if (constraints.facingMode) {
-    videoConstraints.facingMode = constraints.facingMode;
-  }
-  if (constraints.deviceId) {
-    videoConstraints.deviceId = constraints.deviceId;
-  }
-
-  var fullConstraints = {
+function requestCamera() {
+  var constraints = {
     audio: false,
-    video: videoConstraints
+    video: {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+      frameRate: { ideal: 30, min: 15 }
+    }
   };
 
-  return navigator.mediaDevices.getUserMedia(fullConstraints)
+  return navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       return setupStream(stream);
     });
 }
 
-function tryDeviceIdCamera() {
-  return navigator.mediaDevices.enumerateDevices()
-    .then(function(devices) {
-      state.devices = devices.filter(function(d) { return d.kind === 'videoinput'; });
-      if (state.devices.length === 0) {
-        return Promise.reject(new Error('No camera devices'));
-      }
-
-      // หากล้องหลังจาก label
-      var backCam = findBackCamera(state.devices);
-      if (!backCam) backCam = state.devices[state.devices.length - 1]; // ตัวสุดท้ายมักเป็นกล้องหลัง
-
-      var idx = state.devices.indexOf(backCam);
-      state.currentDeviceIndex = idx >= 0 ? idx : 0;
-
-      return requestCamera({ deviceId: { exact: backCam.deviceId } }, false);
-    });
-}
-
-function findBackCamera(devices) {
-  var keywords = ['back', 'rear', 'environment', 'หลัง', 'primary', 'world', 'main'];
-  for (var i = 0; i < devices.length; i++) {
-    var label = (devices[i].label || '').toLowerCase();
-    for (var k = 0; k < keywords.length; k++) {
-      if (label.indexOf(keywords[k]) !== -1) return devices[i];
-    }
-  }
-  return null;
-}
-
-/* ============================================================
-   🎬 Setup stream
-============================================================ */
 function setupStream(stream) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     state.stream = stream;
     state.videoTrack = stream.getVideoTracks()[0];
-
-    if (!state.videoTrack) {
-      reject(new Error('No video track'));
-      return;
-    }
 
     var video = state.video;
     video.srcObject = stream;
@@ -557,29 +858,18 @@ function setupStream(stream) {
     video.setAttribute('muted', 'true');
     video.muted = true;
 
-    // รอ video พร้อม
     var onReady = function() {
       video.removeEventListener('loadedmetadata', onReady);
 
-      // ✅ บังคับ continuous focus + torch
       applyTrackSettings()
         .then(function() {
           document.getElementById('loading').classList.add('hidden');
-
-          // เริ่ม engine
           startEngine();
-
-          // โหลดรายการกล้อง (สำหรับปุ่มสลับ)
           loadCameraList();
-
-          // Log
           logCameraInfo();
-
           resolve();
         })
-        .catch(function(err) {
-          console.warn('applyTrackSettings error:', err);
-          // ยังคงสแกนได้
+        .catch(function() {
           document.getElementById('loading').classList.add('hidden');
           startEngine();
           loadCameraList();
@@ -593,11 +883,8 @@ function setupStream(stream) {
       console.warn('play() error:', e);
     });
 
-    // Timeout fallback
     setTimeout(function() {
-      if (!state.isScanning && video.readyState >= 2) {
-        onReady();
-      }
+      if (!state.isScanning && video.readyState >= 2) onReady();
     }, 2000);
   });
 }
@@ -609,35 +896,20 @@ function applyTrackSettings() {
     var caps = state.videoTrack.getCapabilities ? state.videoTrack.getCapabilities() : {};
     var advanced = [];
 
-    // ✅ Continuous focus
     if (caps.focusMode && caps.focusMode.indexOf('continuous') !== -1) {
       advanced.push({ focusMode: 'continuous' });
     }
 
-    // ✅ Torch available?
     if (caps.torch) {
       state.torchAvailable = true;
       document.getElementById('torchBtn').style.display = 'flex';
     }
 
-    // ✅ Zoom (บางกล้อง)
-    if (caps.zoom && caps.zoom.min !== undefined && caps.zoom.max !== undefined) {
-      var midZoom = (caps.zoom.min + caps.zoom.max) / 2;
-      // ใช้ zoom ปานกลางเพื่อโฟกัส
-      // advanced.push({ zoom: midZoom });
-    }
-
-    if (advanced.length === 0) {
-      resolve();
-      return;
-    }
+    if (advanced.length === 0) { resolve(); return; }
 
     state.videoTrack.applyConstraints({ advanced: advanced })
       .then(function() { resolve(); })
-      .catch(function(e) {
-        console.warn('applyConstraints error:', e);
-        resolve();
-      });
+      .catch(function() { resolve(); });
   });
 }
 
@@ -649,52 +921,43 @@ function loadCameraList() {
         document.getElementById('switchBtn').style.display = 'flex';
       }
     })
-    .catch(function(e) { console.warn('enumerateDevices:', e); });
+    .catch(function() {});
 }
 
 function logCameraInfo() {
   try {
-    var settings = state.videoTrack.getSettings ? state.videoTrack.getSettings() : {};
+    var s = state.videoTrack.getSettings ? state.videoTrack.getSettings() : {};
     console.log('📷 Camera:', {
-      deviceId: settings.deviceId ? settings.deviceId.substring(0, 12) + '...' : 'n/a',
-      resolution: settings.width + 'x' + settings.height,
-      frameRate: settings.frameRate,
-      facingMode: settings.facingMode,
-      focusMode: settings.focusMode,
-      torch: state.torchAvailable
+      resolution: s.width + 'x' + s.height,
+      frameRate: s.frameRate,
+      facingMode: s.facingMode,
+      focusMode: s.focusMode
     });
   } catch(e) {}
 }
 
 /* ============================================================
-   🚀 เริ่มสแกน Engine
+   🚀 Engines
 ============================================================ */
 function startEngine() {
   state.isScanning = true;
 
-  // ✅ Priority 1: BarcodeDetector native (เร็วที่สุด)
   if ('BarcodeDetector' in window) {
     tryInitNativeDetector();
     return;
   }
 
-  // ✅ Priority 2: ZXing fallback
   if (typeof ZXing !== 'undefined') {
     initZXing();
     return;
   }
 
-  showError('ไม่พบตัวสแกน', 'เบราว์เซอร์ไม่รองรับ — กรุณาใช้ Chrome ล่าสุด');
+  showError('ไม่พบตัวสแกน', 'กรุณาใช้ Chrome ล่าสุด');
 }
 
-/* ============================================================
-   ⚡ BarcodeDetector Native (เร็วที่สุด)
-============================================================ */
 function tryInitNativeDetector() {
-  // ลอง format sets หลายแบบ
   var formatSets = [
-    ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'code_93', 'upc_a', 'upc_e', 'itf', 'codabar', 'data_matrix', 'pdf417'],
-    ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf'],
+    ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'code_93', 'upc_a', 'upc_e', 'itf', 'codabar'],
     ['qr_code', 'ean_13', 'code_128'],
     undefined
   ];
@@ -702,7 +965,6 @@ function tryInitNativeDetector() {
   var idx = 0;
   function tryNext() {
     if (idx >= formatSets.length) {
-      console.warn('BarcodeDetector ไม่สามารถ init ได้ → ใช้ ZXing');
       if (typeof ZXing !== 'undefined') initZXing();
       else showError('ไม่พบตัวสแกน', '');
       return;
@@ -712,25 +974,17 @@ function tryInitNativeDetector() {
     var detector;
     try {
       detector = formats ? new BarcodeDetector({ formats: formats }) : new BarcodeDetector();
-    } catch(e) {
-      tryNext();
-      return;
-    }
+    } catch(e) { tryNext(); return; }
 
-    // ทดสอบด้วย frame ปัจจุบัน
     detector.detect(state.video)
       .then(function() {
-        // ✅ ใช้ได้
         state.detector = detector;
         state.activeEngine = 'native';
-        console.log('✅ BarcodeDetector ready:', formats || 'default');
-        document.getElementById('statusText').textContent = '⚡ โหมดเร็ว (Native) — เล็งบาร์โค้ด';
+        console.log('✅ Native BarcodeDetector');
+        document.getElementById('statusText').textContent = '⚡ โหมดเร็ว — เล็งบาร์โค้ด';
         startNativeLoop();
       })
-      .catch(function(err) {
-        console.warn('BarcodeDetector test fail:', err);
-        tryNext();
-      });
+      .catch(function() { tryNext(); });
   }
   tryNext();
 }
@@ -743,12 +997,10 @@ function startNativeLoop() {
     if (now - state.lastDecodeTime >= state.decodeInterval) {
       state.lastDecodeTime = now;
 
-      // ✅ สแกนเฟรมปัจจุบัน
       state.detector.detect(state.video)
         .then(function(barcodes) {
           if (!state.isScanning) return;
           if (barcodes && barcodes.length > 0) {
-            // ✅ เอาเฉพาะอันแรกที่มี rawValue
             for (var i = 0; i < barcodes.length; i++) {
               if (barcodes[i] && barcodes[i].rawValue) {
                 onScanned(barcodes[i].rawValue, barcodes[i].format);
@@ -757,25 +1009,14 @@ function startNativeLoop() {
             }
           }
         })
-        .catch(function(err) {
-          // ignore — decode fail ปกติ
-        });
+        .catch(function() {});
     }
-
     state.rafId = requestAnimationFrame(loop);
   };
   loop();
 }
 
-/* ============================================================
-   🔧 ZXing Fallback
-============================================================ */
 function initZXing() {
-  if (typeof ZXing === 'undefined') {
-    showError('ไม่พบ ZXing', '');
-    return;
-  }
-
   try {
     var hints = new Map();
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
@@ -784,14 +1025,11 @@ function initZXing() {
       ZXing.BarcodeFormat.EAN_8,
       ZXing.BarcodeFormat.CODE_128,
       ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.CODE_93,
       ZXing.BarcodeFormat.UPC_A,
       ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.ITF,
-      ZXing.BarcodeFormat.CODABAR
+      ZXing.BarcodeFormat.ITF
     ]);
     hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-    hints.set(ZXing.DecodeHintType.CHARACTER_SET, 'UTF-8');
 
     var reader = new ZXing.BrowserMultiFormatReader(hints);
     state.zxingReader = reader;
@@ -801,12 +1039,10 @@ function initZXing() {
 
     reader.decodeFromVideoDevice(null, 'video', function(result, err) {
       if (!state.isScanning) return;
-      if (result) {
-        onScanned(result.getText(), 'zxing');
-      }
+      if (result) onScanned(result.getText(), 'zxing');
     });
   } catch(e) {
-    console.error('ZXing init error:', e);
+    console.error('ZXing error:', e);
     showError('ตัวสแกนขัดข้อง', String(e.message || e));
   }
 }
@@ -823,30 +1059,23 @@ function onScanned(text, format) {
   state.lastResult = text;
   state.lastResultTime = now;
   state.pendingResult = text;
-
-  // หยุดสแกนชั่วคราว
   state.isScanning = false;
 
-  // Feedback
   beepSuccess();
   haptic([50, 40, 50]);
   showSuccessFlash();
 
-  // แสดง popup
   setTimeout(function() {
     showResultPopup(text, format);
   }, 150);
 }
 
-/* ============================================================
-   💬 Result Popup
-============================================================ */
 function showResultPopup(code, format) {
   document.getElementById('resultCode').textContent = code;
 
   var formatText = format ? String(format).toUpperCase() : '';
   document.getElementById('resultInfo').textContent = formatText
-    ? 'รูปแบบ: ' + formatText + ' · ตรวจสอบก่อนยืนยัน'
+    ? 'รูปแบบ: ' + formatText
     : 'ตรวจสอบรหัสก่อนยืนยัน';
 
   document.getElementById('resultIcon').textContent = '✅';
@@ -875,7 +1104,7 @@ function confirmAndReturn() {
 }
 
 /* ============================================================
-   🚀 ส่งค่ากลับ
+   🚀 Return to WMS
 ============================================================ */
 function returnToApp(code) {
   if (!code) return;
@@ -887,9 +1116,10 @@ function returnToApp(code) {
 
   if (!config.returnUrl) {
     document.getElementById('resultCode').textContent = code;
-    document.getElementById('resultInfo').textContent = 'กรุณาก็อปโค้ดด้านบนไปวางใน WMS';
+    document.getElementById('resultInfo').textContent = 'กรุณาก็อปโค้ดไปวางใน WMS';
     document.getElementById('resultIcon').textContent = '📋';
     document.getElementById('resultTitle').textContent = 'ก็อปโค้ดไปวาง';
+    document.getElementById('resultPopup').classList.remove('hidden');
     return;
   }
 
@@ -923,22 +1153,18 @@ function closeAndReturn() {
 function stopAll() {
   state.isScanning = false;
 
-  // หยุด RAF
   if (state.rafId) {
     cancelAnimationFrame(state.rafId);
     state.rafId = null;
   }
 
-  // หยุด ZXing
   if (state.zxingReader) {
     try { state.zxingReader.reset(); } catch(e) {}
     state.zxingReader = null;
   }
 
-  // หยุด detector
   state.detector = null;
 
-  // หยุดกล้อง
   if (state.stream) {
     try {
       state.stream.getTracks().forEach(function(t) { t.stop(); });
@@ -954,7 +1180,7 @@ function stopAll() {
 }
 
 /* ============================================================
-   🔆 Torch / 🔄 Switch
+   🔆 Torch / Switch
 ============================================================ */
 function toggleTorch() {
   if (!state.videoTrack || !state.torchAvailable) {
@@ -968,37 +1194,39 @@ function toggleTorch() {
     advanced: [{ torch: state.torchOn }]
   }).then(function() {
     document.getElementById('torchBtn').textContent = state.torchOn ? '🔅 ปิดไฟ' : '🔆 เปิดไฟ';
-  }).catch(function(e) {
-    console.warn('torch error:', e);
+  }).catch(function() {
     toast('เปิดไฟไม่สำเร็จ', 'warn');
-    state.torchOn = !state.torchOn; // revert
+    state.torchOn = !state.torchOn;
   });
 }
 
 function switchCamera() {
   if (state.devices.length < 2) return;
 
-  // หยุดของเดิม
   stopAll();
-
   state.currentDeviceIndex = (state.currentDeviceIndex + 1) % state.devices.length;
   var nextDevice = state.devices[state.currentDeviceIndex];
 
-  // แสดง loading
   document.getElementById('loading').classList.remove('hidden');
   document.getElementById('loadingText').textContent = 'กำลังสลับกล้อง...';
 
-  // เปิดกล้องใหม่
   setTimeout(function() {
-    requestCamera({ deviceId: { exact: nextDevice.deviceId } }, false)
-      .then(function() {
-        toast('สลับกล้องแล้ว', 'info', 1200);
-      })
-      .catch(function(e) {
-        console.error('switch fail:', e);
-        toast('สลับกล้องไม่สำเร็จ', 'error');
-        document.getElementById('loading').classList.add('hidden');
-      });
+    navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        deviceId: { exact: nextDevice.deviceId },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    }).then(function(stream) {
+      return setupStream(stream);
+    }).then(function() {
+      toast('สลับกล้องแล้ว', 'info', 1200);
+    }).catch(function(e) {
+      console.error('switch fail:', e);
+      toast('สลับกล้องไม่สำเร็จ', 'error');
+      document.getElementById('loading').classList.add('hidden');
+    });
   }, 200);
 }
 
@@ -1029,10 +1257,10 @@ function submitManual() {
 }
 
 /* ============================================================
-   🎨 UI Helper
+   🎨 Helper
 ============================================================ */
 function showSuccessFlash() {
-  var viewport = document.querySelector('.scanner-viewport');
+  var viewport = document.querySelector('.scanner-viewport:not(.hidden)');
   if (!viewport) return;
 
   var old = viewport.querySelector('.flash-success');
@@ -1064,26 +1292,37 @@ function showError(msg, hint) {
 
 function handleCameraError(err) {
   var name = (err && err.name) || '';
-  var msg = (err && err.message) || 'Unknown error';
+  var msg = (err && err.message) || 'Unknown';
 
   if (name === 'NotAllowedError' || name === 'SecurityError') {
-    showError(
-      '🚫 กล้องถูกบล็อก',
-      '<b style="color:#FFB800">แก้ไข:</b><br>' +
-      '1. กด 🔒 ที่ address bar<br>' +
-      '2. เลือก "การตั้งค่าเว็บไซต์"<br>' +
-      '3. Camera → อนุญาต<br>' +
-      '4. รีเฟรชหน้า'
-    );
-  } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+    showError('🚫 กล้องถูกบล็อก',
+      'กด 🔒 → Camera → Allow → รีเฟรช');
+  } else if (name === 'NotFoundError') {
     showError('ไม่พบกล้อง', 'อุปกรณ์นี้ไม่มีกล้อง');
   } else if (name === 'NotReadableError') {
-    showError('กล้องถูกใช้งานอยู่', 'ปิดแอปอื่นที่ใช้กล้อง (Facebook, LINE, กล้อง)');
-  } else if (name === 'AbortError') {
-    showError('กล้องขัดข้อง', 'ลองรีเฟรชหน้า');
+    showError('กล้องถูกใช้งาน', 'ปิดแอปอื่นที่ใช้กล้อง');
   } else {
     showError('ไม่สามารถเปิดกล้องได้', msg);
   }
+}
+
+function detectInAppBrowser() {
+  var ua = navigator.userAgent || '';
+  var isLine = /Line\//i.test(ua);
+  var isFacebook = /FBAN|FBAV|FB_IAB|FB4A|FBIOS/i.test(ua);
+  var isInstagram = /Instagram/i.test(ua);
+  var isTikTok = /TikTok|BytedanceWebview/i.test(ua);
+
+  if (isLine || isFacebook || isInstagram || isTikTok) {
+    var app = isLine ? 'LINE' : isFacebook ? 'Facebook' : isInstagram ? 'Instagram' : 'TikTok';
+    showError(
+      '⚠️ ต้องเปิดใน Chrome / Safari',
+      'เปิดจาก ' + app + ' ไม่ได้<br><br>' +
+      '<b style="color:#FFB800">แก้:</b> กด ⋮ → เปิดในเบราว์เซอร์'
+    );
+    return true;
+  }
+  return false;
 }
 
 function toast(msg, type, duration) {
@@ -1128,8 +1367,6 @@ function beepSuccess() {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.15);
-
-    // Cleanup context
     setTimeout(function() {
       try { ctx.close(); } catch(e) {}
     }, 500);
@@ -1139,41 +1376,19 @@ function beepSuccess() {
 /* ============================================================
    🧹 Cleanup
 ============================================================ */
-window.addEventListener('beforeunload', function() {
-  stopAll();
-});
-
-window.addEventListener('pagehide', function() {
-  stopAll();
-});
+window.addEventListener('beforeunload', function() { stopAll(); });
+window.addEventListener('pagehide', function() { stopAll(); });
 
 document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    // พักสแกน
-    if (state.isScanning) {
-      state.isScanning = false;
-    }
-  } else {
-    // กลับมา → สแกนต่อ
-    if (!state.pendingResult && state.detector) {
-      state.isScanning = true;
-      state.lastDecodeTime = 0;
-    }
-  }
-});
-
-/* ============================================================
-   ⌨️ Manual input Enter
-============================================================ */
-document.addEventListener('DOMContentLoaded', function() {
-  var mi = document.getElementById('manualInput');
-  if (mi) {
-    mi.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitManual();
+  if (!state.iosMode) {
+    if (document.hidden) {
+      if (state.isScanning) state.isScanning = false;
+    } else {
+      if (!state.pendingResult && state.detector) {
+        state.isScanning = true;
+        state.lastDecodeTime = 0;
       }
-    });
+    }
   }
 });
 </script>
