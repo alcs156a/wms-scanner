@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#E30613">
   <title>Scanner - WMS Makro 156</title>
 
-  <!-- ZXing Library (ตัวสแกน) -->
+  <!-- ZXing Library (Fallback) -->
   <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
 
   <style>
@@ -396,20 +396,23 @@ var state = {
   devices: [],
   currentDeviceIndex: 0,
   scanning: false,
-  pendingResult: ''
+  pendingResult: '',
+  detector: null,
+  detectorRafId: null,
+  decodeInterval: 120,
+  lastDecodeTime: 0,
+  autoTorchOn: false
 };
 
 /* ============================================================
    🎯 INIT
 ============================================================ */
 window.addEventListener('load', function() {
-  // อ่าน parameters จาก URL
   var params = new URLSearchParams(location.search);
   config.returnUrl = params.get('returnUrl') || params.get('ret') || '';
   config.scanMode = params.get('mode') || 'text';
   config.label = params.get('label') || 'สแกนบาร์โค้ด / QR';
 
-  // ปรับ UI
   document.getElementById('headerTitle').textContent = config.label;
 
   if (config.scanMode === 'item') {
@@ -418,31 +421,68 @@ window.addEventListener('load', function() {
     document.getElementById('statusText').textContent = '🚚 เล็ง QR Code พาเลท';
   }
 
-  // ถ้าไม่มี returnUrl → แสดงข้อความเตือน
   if (!config.returnUrl) {
     document.getElementById('loadingText').textContent = 'ไม่พบ returnUrl — จะแสดงค่าที่สแกน';
-    console.warn('⚠️ ไม่มี returnUrl — จะไม่สามารถส่งค่ากลับได้');
   }
 
   startCamera();
 });
 
 /* ============================================================
-   📷 เปิดกล้อง + สแกน
+   📷 เปิดกล้อง
 ============================================================ */
 function startCamera() {
   var video = document.getElementById('video');
+
+  // ตรวจ In-App Browser
+  var ua = navigator.userAgent || '';
+  var isLine = /Line\//i.test(ua);
+  var isFacebook = /FBAN|FBAV|FB_IAB/i.test(ua);
+  var isInstagram = /Instagram/i.test(ua);
+  var isTikTok = /TikTok|BytedanceWebview/i.test(ua);
+  var isInApp = isLine || isFacebook || isInstagram || isTikTok;
+
+  if (isInApp) {
+    var appName = isLine ? 'LINE' : isFacebook ? 'Facebook' : isInstagram ? 'Instagram' : 'TikTok';
+    showCameraError(
+      '⚠️ ต้องเปิดใน Chrome / Safari',
+      'คุณกำลังเปิดจาก ' + appName + '<br><br>' +
+      '<b style="color:#FFB800">วิธีแก้:</b><br>' +
+      'กด ⋮ (มุมขวาบน) → เปิดในเบราว์เซอร์'
+    );
+    return;
+  }
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showCameraError('เบราว์เซอร์ไม่รองรับกล้อง', 'กรุณาใช้ Chrome / Safari');
     return;
   }
 
-  // ลอง constraint หลายแบบ
+  // ✅ Constraint ที่คมขึ้น + auto-focus
   var attempts = [
-    { audio:false, video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} } },
-    { audio:false, video:{ facingMode:'environment' } },
-    { audio:false, video:true }
+    {
+      audio: false,
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        focusMode: 'continuous',
+        advanced: [
+          { focusMode: 'continuous' },
+          { focusMode: 'macro' }
+        ]
+      }
+    },
+    {
+      audio: false,
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    },
+    { audio: false, video: { facingMode: 'environment' } },
+    { audio: false, video: true }
   ];
 
   var idx = 0;
@@ -458,17 +498,32 @@ function startCamera() {
         video.srcObject = stream;
         video.setAttribute('playsinline', 'true');
         video.setAttribute('muted', 'true');
+        video.setAttribute('autoplay', 'true');
+
         video.play().catch(function(){});
 
         state.videoTrack = stream.getVideoTracks()[0];
 
-        // ตรวจสอบ capabilities
-        var caps = state.videoTrack.getCapabilities ? state.videoTrack.getCapabilities() : {};
-        if (caps && caps.torch) {
-          document.getElementById('torchBtn').style.display = 'flex';
+        // ✅ บังคับ focusMode continuous
+        try {
+          var caps = state.videoTrack.getCapabilities ? state.videoTrack.getCapabilities() : {};
+          var constraints = {};
+          if (caps.focusMode && caps.focusMode.indexOf('continuous') !== -1) {
+            constraints.focusMode = 'continuous';
+          }
+          if (Object.keys(constraints).length > 0) {
+            state.videoTrack.applyConstraints(constraints).catch(function(){});
+          }
+
+          // ✅ ตรวจไฟฉาย
+          if (caps && caps.torch) {
+            document.getElementById('torchBtn').style.display = 'flex';
+          }
+        } catch(e) {
+          console.warn('Set constraints:', e);
         }
 
-        // ตรวจสอบกล้องหลายตัว
+        // ✅ ตรวจกล้องหลายตัว
         navigator.mediaDevices.enumerateDevices().then(function(devices) {
           state.devices = devices.filter(function(d) { return d.kind === 'videoinput'; });
           if (state.devices.length > 1) {
@@ -477,23 +532,118 @@ function startCamera() {
         }).catch(function(){});
 
         document.getElementById('loading').classList.add('hidden');
-        startZXing(video);
-        toast('กล้องพร้อมแล้ว', 'success', 1500);
+
+        // ✅ เริ่มตัวสแกน (BarcodeDetector ก่อน → ZXing fallback)
+        startScannerEngine(video);
+
+        toast('กล้องพร้อม — เล็งบาร์โค้ดให้เต็มกรอบ', 'success', 2000);
       })
       .catch(function(err) {
         console.warn('Camera error:', err);
+
+        if (err.name === 'NotAllowedError') {
+          showCameraError(
+            '🚫 กล้องถูกบล็อก',
+            'กด 🔒 หน้า URL → อนุญาตกล้อง → รีเฟรช'
+          );
+          return;
+        }
+        if (err.name === 'NotFoundError') {
+          showCameraError('ไม่พบกล้อง', 'อุปกรณ์นี้ไม่มีกล้อง');
+          return;
+        }
         tryNext();
       });
   }
   tryNext();
 }
 
-function startZXing(video) {
-  if (typeof ZXing === 'undefined') {
-    showCameraError('ไม่พบ ZXing library', 'กรุณารีเฟรชหน้า');
+/* ============================================================
+   🚀 เริ่มตัวสแกน — เลือก engine ที่เร็วที่สุด
+============================================================ */
+function startScannerEngine(video) {
+  state.scanning = true;
+
+  // ✅ ลำดับที่ 1: BarcodeDetector (native Chrome — เร็วที่สุด 5-10x)
+  if ('BarcodeDetector' in window) {
+    tryBarcodeDetector(video);
     return;
   }
 
+  // ✅ ลำดับที่ 2: ZXing (fallback)
+  if (typeof ZXing !== 'undefined') {
+    startZXing(video);
+    return;
+  }
+
+  showCameraError('ไม่พบตัวสแกน', 'กรุณารีเฟรชหน้า');
+}
+
+/* ============================================================
+   ⚡ BarcodeDetector API (Native — เร็วและแม่นที่สุด)
+============================================================ */
+function tryBarcodeDetector(video) {
+  var formatSets = [
+    ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'code_93', 'upc_a', 'upc_e', 'itf', 'codabar', 'data_matrix', 'pdf417'],
+    ['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'itf'],
+    ['qr_code', 'ean_13', 'code_128'],
+    undefined
+  ];
+
+  var idx = 0;
+  function tryNext() {
+    if (idx >= formatSets.length) {
+      console.warn('BarcodeDetector: ทุก format fail → ใช้ ZXing');
+      if (typeof ZXing !== 'undefined') startZXing(video);
+      return;
+    }
+    var formats = formatSets[idx++];
+    var detector;
+    try {
+      detector = formats ? new BarcodeDetector({ formats: formats }) : new BarcodeDetector();
+    } catch(e) {
+      tryNext();
+      return;
+    }
+
+    // ✅ ทดสอบด้วยการ detect ครั้งแรก
+    detector.detect(video).then(function() {
+      // ✅ ใช้งานได้ → เริ่ม loop
+      state.detector = detector;
+      console.log('✅ BarcodeDetector ready — formats:', formats);
+      document.getElementById('statusText').textContent = '⚡ สแกนเร็ว (Native) — เล็งบาร์โค้ด';
+
+      var loop = function() {
+        if (!state.scanning) return;
+        var now = Date.now();
+
+        // ✅ Decode ทุก 120ms (ไม่ถี่เกินไป — ประหยัด CPU)
+        if (now - state.lastDecodeTime >= state.decodeInterval) {
+          state.lastDecodeTime = now;
+          detector.detect(video).then(function(barcodes) {
+            if (barcodes && barcodes.length > 0) {
+              var b = barcodes[0];
+              if (b.rawValue) {
+                onScanned(b.rawValue, b.format);
+              }
+            }
+          }).catch(function() {});
+        }
+        state.detectorRafId = requestAnimationFrame(loop);
+      };
+      loop();
+    }).catch(function(err) {
+      console.warn('BarcodeDetector format fail:', err);
+      tryNext();
+    });
+  }
+  tryNext();
+}
+
+/* ============================================================
+   🔧 ZXing Fallback
+============================================================ */
+function startZXing(video) {
   try {
     var hints = new Map();
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
@@ -505,17 +655,15 @@ function startZXing(video) {
       ZXing.BarcodeFormat.CODE_93,
       ZXing.BarcodeFormat.UPC_A,
       ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.ITF,
-      ZXing.BarcodeFormat.CODABAR,
-      ZXing.BarcodeFormat.DATA_MATRIX,
-      ZXing.BarcodeFormat.PDF_417
+      ZXing.BarcodeFormat.ITF
     ]);
     hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
     hints.set(ZXing.DecodeHintType.CHARACTER_SET, 'UTF-8');
 
     var reader = new ZXing.BrowserMultiFormatReader(hints);
     state.codeReader = reader;
-    state.scanning = true;
+
+    document.getElementById('statusText').textContent = '📷 เล็งบาร์โค้ดให้เต็มกรอบ';
 
     reader.decodeFromVideoDevice(null, 'video', function(result, err) {
       if (!state.scanning) return;
@@ -532,7 +680,7 @@ function startZXing(video) {
 /* ============================================================
    🎯 เมื่อสแกนได้
 ============================================================ */
-function onScanned(text) {
+function onScanned(text, format) {
   if (!text) return;
   var now = Date.now();
   // กันสแกนซ้ำใน 1.5 วินาที
@@ -540,19 +688,24 @@ function onScanned(text) {
   state.lastResult = text;
   state.lastResultTime = now;
 
+  // ✅ หยุดสแกนชั่วคราว (กันสแกนซ้ำตอน popup)
+  state.scanning = false;
+
   beep('success');
-  haptic([30, 40, 30]);
+  haptic([40, 50, 40]);
 
   state.pendingResult = text;
-  showResultPopup(text);
+  showResultPopup(text, format);
 }
 
 /* ============================================================
    💬 Result Popup
 ============================================================ */
-function showResultPopup(code) {
+function showResultPopup(code, format) {
   document.getElementById('resultCode').textContent = code;
-  document.getElementById('resultInfo').textContent = 'ตรวจสอบรหัสก่อนยืนยัน';
+  document.getElementById('resultInfo').textContent = format
+    ? 'รูปแบบ: ' + format.toUpperCase() + ' · ตรวจสอบก่อนยืนยัน'
+    : 'ตรวจสอบรหัสก่อนยืนยัน';
   document.getElementById('resultIcon').textContent = '✅';
   document.getElementById('resultTitle').textContent = 'สแกนสำเร็จ';
   document.getElementById('resultPopup').classList.remove('hidden');
@@ -561,11 +714,12 @@ function showResultPopup(code) {
 function rescan() {
   state.pendingResult = '';
   document.getElementById('resultPopup').classList.add('hidden');
-  // รอ 1.5 วิ ก่อนเริ่มสแกนใหม่ (กันการสแกนซ้ำ)
+  // ✅ รีสตาร์ทสแกน
   setTimeout(function() {
     state.lastResult = '';
     state.lastResultTime = 0;
-  }, 1500);
+    state.scanning = true;
+  }, 500);
 }
 
 function confirmAndReturn() {
@@ -585,17 +739,14 @@ function returnToApp(code) {
   beep('success');
   haptic([50, 30, 50]);
 
-  // ถ้าไม่มี returnUrl → แสดงโค้ดแทน
   if (!config.returnUrl) {
     document.getElementById('resultCode').textContent = code;
-    document.getElementById('resultInfo').textContent =
-      'กรุณาก็อปโค้ดด้านบนไปวางใน WMS';
+    document.getElementById('resultInfo').textContent = 'กรุณาก็อปโค้ดด้านบนไปวางใน WMS';
     document.getElementById('resultIcon').textContent = '📋';
     document.getElementById('resultTitle').textContent = 'ก็อปโค้ดไปวาง';
     return;
   }
 
-  // สร้าง URL กลับ
   var url = config.returnUrl;
   var sep = url.indexOf('?') === -1 ? '?' : '&';
   var finalUrl = url + sep + 'scanresult=' + encodeURIComponent(code) + '#scanresult=' + encodeURIComponent(code);
@@ -607,8 +758,6 @@ function returnToApp(code) {
     try {
       window.location.href = finalUrl;
     } catch (e) {
-      console.error('Redirect error:', e);
-      // fallback: เปิดในหน้าต่างเดิม
       window.location.assign(finalUrl);
     }
   }, 300);
@@ -616,7 +765,6 @@ function returnToApp(code) {
 
 function closeAndReturn() {
   if (config.returnUrl) {
-    // กลับโดยไม่มีค่า
     try {
       window.location.href = config.returnUrl;
     } catch (e) {
@@ -679,14 +827,16 @@ function switchCamera() {
   var device = state.devices[state.currentDeviceIndex];
 
   // หยุดของเดิม
-  if (state.codeReader) { try { state.codeReader.reset(); } catch(e){} }
-  if (state.stream) {
-    state.stream.getTracks().forEach(function(t){ t.stop(); });
-  }
+  stopScanner();
 
   navigator.mediaDevices.getUserMedia({
-    audio:false,
-    video:{ deviceId:{ exact:device.deviceId }, width:{ideal:1280}, height:{ideal:720} }
+    audio: false,
+    video: {
+      deviceId: { exact: device.deviceId },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      focusMode: 'continuous'
+    }
   }).then(function(stream) {
     state.stream = stream;
     var video = document.getElementById('video');
@@ -697,12 +847,27 @@ function switchCamera() {
     var caps = state.videoTrack.getCapabilities ? state.videoTrack.getCapabilities() : {};
     document.getElementById('torchBtn').style.display = (caps && caps.torch) ? 'flex' : 'none';
 
-    startZXing(video);
+    state.scanning = true;
+    startScannerEngine(video);
     toast('สลับกล้องแล้ว', 'info', 1500);
   }).catch(function(err) {
     console.error(err);
     toast('สลับกล้องไม่สำเร็จ', 'error');
+    state.scanning = true;
   });
+}
+
+function stopScanner() {
+  state.scanning = false;
+  if (state.detectorRafId) {
+    cancelAnimationFrame(state.detectorRafId);
+    state.detectorRafId = null;
+  }
+  if (state.codeReader) { try { state.codeReader.reset(); } catch(e){} state.codeReader = null; }
+  if (state.stream) {
+    state.stream.getTracks().forEach(function(t){ t.stop(); });
+    state.stream = null;
+  }
 }
 
 /* ============================================================
@@ -746,25 +911,18 @@ function beep(type) {
     var gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.frequency.value = type === 'success' ? 880 : 400;
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.frequency.value = type === 'success' ? 1200 : 400;
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
     osc.start();
-    osc.stop(ctx.currentTime + 0.15);
+    osc.stop(ctx.currentTime + 0.2);
   } catch(e) {}
 }
 
-/* ============================================================
-   🧹 Cleanup เมื่อปิดหน้า
-============================================================ */
 window.addEventListener('beforeunload', function() {
-  if (state.codeReader) { try { state.codeReader.reset(); } catch(e){} }
-  if (state.stream) {
-    state.stream.getTracks().forEach(function(t){ t.stop(); });
-  }
+  stopScanner();
 });
 
-// Keyboard Enter สำหรับ manual
 document.addEventListener('DOMContentLoaded', function() {
   var mi = document.getElementById('manualInput');
   if (mi) {
